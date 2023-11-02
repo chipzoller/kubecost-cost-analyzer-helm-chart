@@ -79,7 +79,9 @@ jobs:
           kubectl_version: ${{ matrix.k8s-version.version }}
 
       - name: Create test files
-        run: kubectl -n kubecost create -f .github/ci-files
+        run: |
+          kubectl create ns kubecost
+          kubectl -n kubecost create -f .github/ci-files
   
       # Use the ct install action here
       - name: Install Kubecost chart
