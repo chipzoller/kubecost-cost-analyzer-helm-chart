@@ -26,7 +26,7 @@ jobs:
 
       - name: Helm template
         run: |
-          helm template cost-analyzer/ -f values.yaml > full.yaml
+          helm template cost-analyzer/ -f cost-analyzer/values.yaml > full.yaml
           directory="cost-analyzer/ci/"
           for file in "$directory"/*; do
           if [ -f "$file" ]; then
