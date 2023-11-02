@@ -107,9 +107,11 @@ jobs:
           directory="cost-analyzer/ci/"
           for file in "$directory"/*; do
           if [ -f "$file" ]; then
-            helm install --wait --wait-for-jobs kubecost cost-analyzer/ -n kubecost -f "$file"
-            kubectl wait --namespace kubecost --for=condition=ready pod --selector app.kubernetes.io/name=cost-analyzer --timeout=120s
+            echo '### Performing installation ###'
+            ct install --namespace kubecost --chart-dirs=cost-analyzer/ --charts cost-analyzer/ --skip-clean-up
+            echo '### Performing helm tests ###'
             helm test -n kubecost kubecost
+            echo '### Performing uninstallation ###'
             helm uninstall kubecost -n kubecost --no-hooks --wait
           fi
           done
