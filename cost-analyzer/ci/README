@@ -1,2 +1,0 @@
-This directory holds values files for different configurations of Kubecost and will be tested during CI. Files should
-have a name conforming to the `*-values.yaml` format so they are picked up by the `ct` tool.
