@@ -113,8 +113,8 @@ jobs:
             echo '### Performing installation ###'
             ct install --namespace kubecost --chart-dirs=cost-analyzer/ --charts cost-analyzer/ --skip-clean-up
             echo '### Performing helm tests ###'
-            helm test -n kubecost kubecost
+            helm test -n kubecost $(helm ls -n kubecost --all --short)
             echo '### Performing uninstallation ###'
-            helm uninstall kubecost -n kubecost --no-hooks --wait
+            helm uninstall $(helm ls -n kubecost --all --short) -n kubecost --no-hooks --wait 
           fi
           done
