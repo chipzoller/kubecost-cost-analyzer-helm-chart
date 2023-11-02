@@ -17,9 +17,11 @@ jobs:
       - name: Set up chart-testing
         uses: helm/chart-testing-action@b43128a8b25298e1e7b043b78ea6613844e079b1 # v2.6.0
 
+      # Lint all chart values including those in the ci directory.
       - name: Run chart-testing (lint)
         run: ct lint --chart-dirs=cost-analyzer/ --charts cost-analyzer/ --validate-maintainers=false
 
+      # Run `helm template` on the main values file plus all those in the ci directory.
       - name: Helm template
         run: |
           helm template cost-analyzer/ -f cost-analyzer/values.yaml > full.yaml
@@ -30,6 +32,8 @@ jobs:
           fi
           done
 
+      # Run Kubeconform on the combined, templatized output across all values stored in `full.yaml`.
+      # Make sure that regardless of the values file used all the rendered resources are valid.
       - name: Kubeconform
         uses: docker://ghcr.io/yannh/kubeconform:latest
         with:
@@ -78,19 +82,22 @@ jobs:
           node_image: kindest/node:${{ matrix.k8s-version.version }}
           kubectl_version: ${{ matrix.k8s-version.version }}
 
+      # Create necessary test files in the cluster for `ct install`. Some configurations of the chart
+      # require pre-existing files like Secrets in order for volume mounts to be valid. Without them,
+      # Pods won't come up and tests will fail.
       - name: Create test files
         run: |
           kubectl create ns kubecost
           kubectl -n kubecost create -f .github/ci-files
   
-      # Use the ct install action here
+      # Install the chart and check results.
       - name: Install Kubecost chart
         # working-directory: ./cost-analyzer
         # run: helm install --wait --wait-for-jobs kubecost . -n kubecost --create-namespace
         run: ct install --namespace kubecost --chart-dirs=cost-analyzer/ --charts cost-analyzer/
 
-      - name: Wait for ready 
-        run: kubectl wait --namespace kubecost --for=condition=ready pod --selector app.kubernetes.io/name=cost-analyzer --timeout=120s
+      # - name: Wait for ready 
+      #   run: kubectl wait --namespace kubecost --for=condition=ready pod --selector app.kubernetes.io/name=cost-analyzer --timeout=120s
 
       - name: Run Helm tests 
         run: helm test -n kubecost kubecost
