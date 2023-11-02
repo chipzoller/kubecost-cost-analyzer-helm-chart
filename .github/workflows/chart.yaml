@@ -72,9 +72,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
 
-      - name: Set up chart-testing
-        uses: helm/chart-testing-action@b43128a8b25298e1e7b043b78ea6613844e079b1 # v2.6.0
-
       - name: Create KinD cluster
         uses: helm/kind-action@dda0770415bac9fc20092cacbc54aa298604d140 # v1.8.0
         with:
@@ -82,22 +79,37 @@ jobs:
           node_image: kindest/node:${{ matrix.k8s-version.version }}
           kubectl_version: ${{ matrix.k8s-version.version }}
 
-      # Create necessary test files in the cluster for `ct install`. Some configurations of the chart
+      # Create necessary test files in the cluster. Some configurations of the chart
       # require pre-existing files like Secrets in order for volume mounts to be valid. Without them,
       # Pods won't come up and tests will fail.
-      - name: Create test files
+      - name: Create kubecost Namespace and test files
         run: |
           kubectl create ns kubecost
           kubectl -n kubecost create -f .github/ci-files
   
       # Install the chart and check results.
       - name: Install Kubecost chart
-        # working-directory: ./cost-analyzer
-        # run: helm install --wait --wait-for-jobs kubecost . -n kubecost --create-namespace
-        run: ct install --namespace kubecost --chart-dirs=cost-analyzer/ --charts cost-analyzer/
+        working-directory: ./cost-analyzer
+        run: helm install --wait --wait-for-jobs kubecost . -n kubecost
+        # run: ct install --namespace kubecost --chart-dirs=cost-analyzer/ --charts cost-analyzer/
 
-      # - name: Wait for ready 
-      #   run: kubectl wait --namespace kubecost --for=condition=ready pod --selector app.kubernetes.io/name=cost-analyzer --timeout=120s
+      - name: Wait for ready 
+        run: kubectl wait -n kubecost --for=condition=ready pod --selector app.kubernetes.io/name=cost-analyzer --timeout=120s
 
       - name: Run Helm tests 
         run: helm test -n kubecost kubecost
+
+      - name: Uninstall chart
+        run: helm uninstall kubecost -n kubecost --no-hooks --wait
+
+      - name: Install chart for other values
+        run: |
+          directory="cost-analyzer/ci/"
+          for file in "$directory"/*; do
+          if [ -f "$file" ]; then
+            helm install --wait --wait-for-jobs kubecost cost-analyzer/ -n kubecost -f "$file"
+            kubectl wait --namespace kubecost --for=condition=ready pod --selector app.kubernetes.io/name=cost-analyzer --timeout=120s
+            helm test -n kubecost kubecost
+            helm uninstall kubecost -n kubecost --no-hooks --wait
+          fi
+          done
