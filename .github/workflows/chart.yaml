@@ -111,11 +111,13 @@ jobs:
           directory="cost-analyzer/ci/"
           for file in "$directory"/*; do
           if [ -f "$file" ]; then
-            echo '### Performing installation with values from $file ###'
+            echo "### Performing installation with values from $file ###"
             helm install --wait --wait-for-jobs kubecost cost-analyzer/ -n kubecost -f "$file"
-            echo '### Performing helm tests ###'
+            echo "### [DEBUG] Listing Pods in Kubecost Namespace. ###"
+            kubectl -n kubecost get pods
+            echo "### Performing helm tests ###"
             helm test -n kubecost $(helm ls -n kubecost --all --short)
-            echo '### Performing uninstallation ###'
+            echo "### Performing uninstallation ###"
             helm uninstall $(helm ls -n kubecost --all --short) -n kubecost --no-hooks --wait 
           fi
           done
