@@ -25,15 +25,15 @@ jobs:
       - name: Helm template
         run: |
           helm template cost-analyzer/ -f cost-analyzer/values.yaml > full.yaml
-          directory="cost-analyzer/ci/"
+          directory="cost-analyzer/ci"
           for file in "$directory"/*; do
           if [ -f "$file" ]; then
               helm template cost-analyzer/ -f "$file" >> full.yaml
           fi
           done
 
-      # Run Kubeconform on the combined, templatized output across all values stored in `full.yaml`.
-      # Make sure that regardless of the values file used all the rendered resources are valid.
+      # Run Kubeconform on the combined, templatized output across all tested values stored in `full.yaml`.
+      # Ensure all the rendered resources are valid.
       - name: Kubeconform
         uses: docker://ghcr.io/yannh/kubeconform:latest
         with:
@@ -41,7 +41,7 @@ jobs:
           args: "-summary -output text full.yaml"
 
 
-  # Installs the chart across a matrix of modern Kubernetes versions
+  # Test cluster versions.
   deploy-chart:
     runs-on: ubuntu-latest
     strategy:
@@ -90,7 +90,7 @@ jobs:
           kubectl create ns kubecost
           kubectl -n kubecost create -f .github/ci-files
   
-      # Install the chart and check results.
+      # Install the chart with default values and check results.
       - name: Install Kubecost chart
         working-directory: ./cost-analyzer
         run: helm install --wait --wait-for-jobs kubecost . -n kubecost
@@ -107,9 +107,6 @@ jobs:
 
       - name: Cleanup all Pods in Kubecost Namespace
         run: kubectl -n kubecost delete deployments,daemonsets,statefulsets,pods --all --force
-
-      - name: Sleep 30
-        run: sleep 30
 
       # Loops over all the other values files in the ci directory and installs the chart, runs Helm tests, and uninstalls.
       # Additional sleeps seem necessary for the main Kubecost Pod to be completely available, both frontend and backend.
