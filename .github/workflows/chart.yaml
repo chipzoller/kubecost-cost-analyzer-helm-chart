@@ -108,11 +108,13 @@ jobs:
       # Loops over all the other values files in the ci directory and installs the chart, runs Helm tests, and uninstalls.
       - name: Install, test, remove chart for other values
         run: |
-          directory="cost-analyzer/ci/"
+          directory="cost-analyzer/ci"
           for file in "$directory"/*; do
           if [ -f "$file" ]; then
             echo "### Performing installation with values from $file ###"
             helm install --wait --wait-for-jobs kubecost cost-analyzer/ -n kubecost -f "$file"
+            echo "### Sleeping for 30 seconds. ###"
+            sleep 30
             echo "### [DEBUG] Listing Pods in Kubecost Namespace. ###"
             kubectl -n kubecost get pods
             echo "### Performing helm tests ###"
