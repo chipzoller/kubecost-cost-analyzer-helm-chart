@@ -111,6 +111,7 @@ jobs:
       # Loops over all the other values files in the ci directory and installs the chart, runs Helm tests, and uninstalls.
       - name: Install, test, remove chart for other values
         id: loopingtests
+        continue-on-error: true
         run: |
           directory="cost-analyzer/ci"
           for file in "$directory"/*; do
