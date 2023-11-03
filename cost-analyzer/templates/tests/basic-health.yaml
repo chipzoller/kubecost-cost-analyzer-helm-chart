@@ -17,7 +17,7 @@ spec:
     args:
       - -c
       - >-
-        svc=$(kubectl -n {{ .Release.Namespace }} get svc -l app.kubernetes.io/name=cost-analyzer -o json | jq -r .items[0].metadata.name);
+        svc="{{ .Release.Name }}-cost-analyzer";
         echo Getting current Kubecost state.;
         response=$(curl -sL http://${svc}:9090/model/getConfigs);
         code=$(echo ${response} | jq .code);
