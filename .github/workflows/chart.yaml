@@ -108,6 +108,9 @@ jobs:
       - name: Cleanup all Pods in Kubecost Namespace
         run: kubectl -n kubecost delete po --all --force
 
+      - name: Sleep 30
+        run: sleep 30
+
       # Loops over all the other values files in the ci directory and installs the chart, runs Helm tests, and uninstalls.
       - name: Install, test, remove chart for other values
         id: loopingtests
@@ -116,12 +119,14 @@ jobs:
           directory="cost-analyzer/ci"
           for file in "$directory"/*; do
           if [ -f "$file" ]; then
+            echo "### Sleeping for 30 seconds ###"
+            sleep 30
             echo "### Performing installation with values from $file ###"
             helm install --wait --wait-for-jobs kubecost cost-analyzer/ -n kubecost -f "$file"
             echo "### Waiting for cost-analyzer Pod readiness. ###"
             kubectl wait -n kubecost --for=condition=ready pod --selector app.kubernetes.io/name=cost-analyzer --timeout=120s
-            echo "### Sleeping for 30 seconds longer. ###"
-            sleep 30
+            echo "### Sleeping for 60 seconds longer. ###"
+            sleep 60
             echo "### [DEBUG] Listing Pods in Kubecost Namespace. ###"
             kubectl -n kubecost get pods
             echo "### Performing helm tests ###"
