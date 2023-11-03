@@ -124,6 +124,8 @@ jobs:
             kubectl -n kubecost get pods
             echo "### Performing helm tests ###"
             helm test -n kubecost $(helm ls -n kubecost --all --short)
+            echo "### [DEBUG] Getting basic-health test logs. ###"
+            kubectl -n kubecost logs basic-health
             echo "### Performing uninstallation ###"
             helm uninstall $(helm ls -n kubecost --all --short) -n kubecost --no-hooks --wait
             echo "### Cleaning up all Pods in Kubecost Namespace ###"
