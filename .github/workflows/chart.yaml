@@ -104,14 +104,15 @@ jobs:
 
       - name: Uninstall chart
         run: helm uninstall kubecost -n kubecost --no-hooks --wait
-
-      - name: Install chart for other values
+      
+      # Loops over all the other values files in the ci directory and installs the chart, runs Helm tests, and uninstalls.
+      - name: Install, test, remove chart for other values
         run: |
           directory="cost-analyzer/ci/"
           for file in "$directory"/*; do
           if [ -f "$file" ]; then
-            echo '### Performing installation ###'
-            ct install --namespace kubecost --chart-dirs=cost-analyzer/ --charts cost-analyzer/ --skip-clean-up
+            echo '### Performing installation with values from $file ###'
+            helm install --wait --wait-for-jobs kubecost cost-analyzer/ -n kubecost -f "$file"
             echo '### Performing helm tests ###'
             helm test -n kubecost $(helm ls -n kubecost --all --short)
             echo '### Performing uninstallation ###'
