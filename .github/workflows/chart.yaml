@@ -104,7 +104,10 @@ jobs:
 
       - name: Uninstall chart
         run: helm uninstall kubecost -n kubecost --no-hooks --wait
-      
+
+      - name: Cleanup all Pods in Kubecost Namespace
+        run: kubectl -n kubecost delete po --all --force
+
       # Loops over all the other values files in the ci directory and installs the chart, runs Helm tests, and uninstalls.
       - name: Install, test, remove chart for other values
         run: |
@@ -122,6 +125,8 @@ jobs:
             echo "### Performing helm tests ###"
             helm test -n kubecost $(helm ls -n kubecost --all --short)
             echo "### Performing uninstallation ###"
-            helm uninstall $(helm ls -n kubecost --all --short) -n kubecost --no-hooks --wait 
+            helm uninstall $(helm ls -n kubecost --all --short) -n kubecost --no-hooks --wait
+            echo "### Cleaning up all Pods in Kubecost Namespace ###"
+            kubectl -n kubecost delete po --all --force
           fi
           done
