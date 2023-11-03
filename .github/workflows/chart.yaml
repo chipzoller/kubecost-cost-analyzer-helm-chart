@@ -112,9 +112,9 @@ jobs:
         run: sleep 30
 
       # Loops over all the other values files in the ci directory and installs the chart, runs Helm tests, and uninstalls.
+      # Additional sleeps seem necessary for the main Kubecost Pod to be completely available, both frontend and backend.
       - name: Install, test, remove chart for other values
         id: loopingtests
-        continue-on-error: true
         run: |
           directory="cost-analyzer/ci"
           for file in "$directory"/*; do
@@ -133,11 +133,7 @@ jobs:
             helm test -n kubecost $(helm ls -n kubecost --all --short)
             echo "### Performing uninstallation ###"
             helm uninstall $(helm ls -n kubecost --all --short) -n kubecost --no-hooks --wait
-            echo "### Cleaning up all Pods in Kubecost Namespace ###"
+            echo "### Cleaning up all Pods and Pod controllers in Kubecost Namespace ###"
             kubectl -n kubecost delete deployments,daemonsets,statefulsets,pods --all --force
           fi
           done
-
-      - name: Get basic-health Pod logs
-        if: steps.loopingtests.outcome == 'failure'
-        run: kubectl -n kubecost logs basic-health
