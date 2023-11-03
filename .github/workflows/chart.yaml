@@ -106,7 +106,7 @@ jobs:
         run: helm uninstall kubecost -n kubecost --no-hooks --wait
 
       - name: Cleanup all Pods in Kubecost Namespace
-        run: kubectl -n kubecost delete po --all --force
+        run: kubectl -n kubecost delete deployments,daemonsets,statefulsets,pods --all --force
 
       - name: Sleep 30
         run: sleep 30
@@ -134,7 +134,7 @@ jobs:
             echo "### Performing uninstallation ###"
             helm uninstall $(helm ls -n kubecost --all --short) -n kubecost --no-hooks --wait
             echo "### Cleaning up all Pods in Kubecost Namespace ###"
-            kubectl -n kubecost delete po --all --force
+            kubectl -n kubecost delete deployments,daemonsets,statefulsets,pods --all --force
           fi
           done
 
