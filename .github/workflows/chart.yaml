@@ -110,6 +110,7 @@ jobs:
 
       # Loops over all the other values files in the ci directory and installs the chart, runs Helm tests, and uninstalls.
       - name: Install, test, remove chart for other values
+        id: loopingtests
         run: |
           directory="cost-analyzer/ci"
           for file in "$directory"/*; do
@@ -124,11 +125,13 @@ jobs:
             kubectl -n kubecost get pods
             echo "### Performing helm tests ###"
             helm test -n kubecost $(helm ls -n kubecost --all --short)
-            echo "### [DEBUG] Getting basic-health test logs. ###"
-            kubectl -n kubecost logs basic-health
             echo "### Performing uninstallation ###"
             helm uninstall $(helm ls -n kubecost --all --short) -n kubecost --no-hooks --wait
             echo "### Cleaning up all Pods in Kubecost Namespace ###"
             kubectl -n kubecost delete po --all --force
           fi
           done
+
+      - name: Get basic-health Pod logs
+        if: steps.loopingtests.outcome == 'failure'
+        run: kubectl -n kubecost logs basic-health
