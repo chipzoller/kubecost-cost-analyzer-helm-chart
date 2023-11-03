@@ -7,11 +7,25 @@ metadata:
   annotations:
     {{- include "kubecost.test.annotations" . | nindent 4 }}
 spec:
-  serviceAccountName: {{ template "cost-analyzer.serviceAccountName" . }}
+  automountServiceAccountToken: false
   restartPolicy: Never
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
   containers:
   - name: test-kubecost
     image: alpine/k8s:1.26.9
+    securityContext:
+      privileged: false
+      capabilities:
+        drop: 
+        - ALL
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
     command:
       - /bin/sh
     args:
