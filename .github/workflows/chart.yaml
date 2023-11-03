@@ -113,8 +113,8 @@ jobs:
           if [ -f "$file" ]; then
             echo "### Performing installation with values from $file ###"
             helm install --wait --wait-for-jobs kubecost cost-analyzer/ -n kubecost -f "$file"
-            echo "### Sleeping for 30 seconds. ###"
-            sleep 30
+            echo "### Sleeping for 60 seconds. ###"
+            sleep 60
             echo "### [DEBUG] Listing Pods in Kubecost Namespace. ###"
             kubectl -n kubecost get pods
             echo "### Performing helm tests ###"
