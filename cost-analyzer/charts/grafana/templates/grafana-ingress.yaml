@@ -1,17 +1,9 @@
 {{ if .Values.global.grafana.enabled }}
-{{- if .Values.ingress.enabled -}}
+{{- if .Values.grafana.ingress.enabled -}}
 {{- $fullName := include "grafana.fullname" . -}}
-{{- $servicePort := .Values.service.port -}}
-{{- $ingressPath := .Values.ingress.path -}}
-{{- $apiV1 := false -}}
-{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1" }}
-{{- $apiV1 = true -}}
+{{- $servicePort := .Values.grafana.service.port -}}
+{{- $ingressPath := .Values.grafana.ingress.path -}}
 apiVersion: networking.k8s.io/v1
-{{ else if .Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" }}
-apiVersion: networking.k8s.io/v1beta1
-{{ else }}
-apiVersion: extensions/v1beta1
-{{ end -}}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
@@ -21,17 +13,17 @@ metadata:
     chart: {{ template "grafana.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
-{{- if .Values.ingress.labels }}
-{{ toYaml .Values.ingress.labels | indent 4 }}
+{{- if .Values.grafana.ingress.labels }}
+{{ toYaml .Values.grafana.ingress.labels | indent 4 }}
 {{- end }}
-{{- with .Values.ingress.annotations }}
+{{- with .Values.grafana.ingress.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
-{{- if .Values.ingress.tls }}
+{{- if .Values.grafana.ingress.tls }}
   tls:
-  {{- range .Values.ingress.tls }}
+  {{- range .Values.grafana.ingress.tls }}
     - hosts:
       {{- range .hosts }}
         - {{ . | quote }}
@@ -40,7 +32,7 @@ spec:
   {{- end }}
 {{- end }}
   rules:
-  {{- range .Values.ingress.hosts }}
+  {{- range .Values.grafana.ingress.hosts }}
     - host: {{ . }}
       http:
         paths:

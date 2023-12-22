@@ -20,7 +20,7 @@ global:
     domainName: cost-analyzer-grafana.default.svc  # example grafana domain Ignored if enabled: true
     scheme: "http"  # http or https, for the domain name above.
     proxy: true  # If true, the kubecost frontend will route to your grafana through its service endpoint
-#    fqdn: cost-analyzer-grafana.default.svc
+    # fqdn: cost-analyzer-grafana.default.svc
 
   # Enable only when you are using GCP Marketplace ENT listing. Learn more at https://console.cloud.google.com/marketplace/product/kubecost-public/kubecost-ent
   gcpstore:
@@ -1188,9 +1188,14 @@ initChownData:
 grafana:
   # namespace_datasources: kubecost # override the default namespace here
   # namespace_dashboards: kubecost # override the default namespace here
+  # nameOverride: ""  # override the default name here
+  # fullnameOverride: ""  # override the default full name here
   rbac:
-    # Manage the Grafana Pod Security Policy
-    pspEnabled: false
+    create: true  # Create the RBAC resources for Grafana.
+    pspEnabled: false  # Create PSP resources for Grafana.
+    pspUseAppArmor: true  # Use AppArmor for PSP.
+  replicas: 1  # Number of replicas for the Grafana deployment.
+  deploymentStrategy: RollingUpdate  # Deployment strategy for the Grafana deployment.
   # datasources:
   #   datasources.yaml:
   #     apiVersion: 1
@@ -1205,6 +1210,89 @@ grafana:
   #           prometheusType: Prometheus
   #           prometheusVersion: 2.35.0
   #           timeInterval: 1m
+
+  # Define a readiness probe for Grafana.
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+
+  # Define a liveness probe for Grafana.
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 60
+    timeoutSeconds: 30
+    failureThreshold: 10
+
+  # Define the container image used for the Grafana deployment.
+  image:
+    repository: grafana/grafana
+    tag: 10.2.2
+    pullPolicy: IfNotPresent
+
+  ## Specify an array of imagePullSecrets for Grafana.
+  ## Secrets must be manually created in the namespace.
+  # pullSecrets:
+  #   - myRegistrKeySecretName
+
+  ## Define a Pod-level securityContext for Grafana. Global securityContext is defined in the global section
+  ## and will take precedence unless this is specified. Recommended to not specify.
+  securityContext: {}
+  # runAsUser: 472
+  # fsGroup: 472
+
+  ## The image used for the initContainer to download dashboards. Only used
+  ## when dashboards have been specified.
+  downloadDashboardsImage:
+    repository: curlimages/curl
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  ## Pod Annotations for Grafana.
+  # podAnnotations: {}
+
+  ## Deployment annotations for Grafana.
+  # annotations: {}
+
+  ## Expose the Grafana service to be accessed from outside the cluster (LoadBalancer service).
+  ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+    labels: {}
+
+  ## Create an Ingress resource for Grafana.
+  ingress:
+    enabled: false
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    labels: {}
+    path: /
+    pathType: Prefix
+    hosts:
+      - chart-example.local
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+  ## Define specific resource requests and limits for the Grafana container.
+  resources: {}
+  #  limits:
+  #    cpu: 100m
+  #    memory: 128Mi
+  #  requests:
+  #    cpu: 100m
+  #    memory: 128Mi
+
+
+
+
+
   sidecar:
     dashboards:
       enabled: true
