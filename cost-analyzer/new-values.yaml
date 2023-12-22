@@ -1,0 +1,78 @@
+prometheus:  ## from global, and from root
+  serviceMonitor:  ## from root
+  prometheusRule:  ## from root
+grafana:  ## from global, and from root
+platforms:  ## from global
+  openshift:  ## from global
+  gcp:
+    gcpstore:  ## from global
+    gmp:  ## from global
+  aws:
+    amp:  ## from global
+    awsstore:  ## from root
+
+# Global settings are those that truly apply to every Pod coming out of this chart without
+# exception. All child fields taken from current global key.
+global:
+  podAnnotations:
+  additionalLabels:
+  securityContext:
+  containerSecurityContext:
+  zone:  ## currently undocumented, used in Prom endpoints
+
+infraSettings:
+  kubecostAdmissionController:  ## from root
+  kubecostAggregator:  ## from root
+  kubecostDeployment:  ## from root
+  kubecostFrontend:  ## from root
+  kubecostModel:  ## from root
+  kubecostMetrics:  ## from root
+  federatedETL:  ## from root
+  networkCosts:  ## from root
+  clusterController:  ## from root
+  ingress:  ## from root
+  nodeSelector: ## from root
+  tolerations: ## from root, this affects Grafana
+  affinity: ## from root, this affects Grafana
+  topologySpreadConstraints: ## from root
+  priority: ## from root
+  networkPolicy: ## from root
+  extraVolumes: ## from root
+  extraVolumeMounts: ## from root
+  persistentVolume: ## from root
+  service: ## from root
+  serviceAccount:  ## from root
+  sigV4Proxy:  ## from root
+  saml:  ## from root
+  oidc:  ## from root
+  supportNFS:  ## from root
+    initChownDataImage:  ## from root
+    initChownData:  ## from root
+  proxy:
+    mimirProxy:  ## from global
+    systemProxy:  ## from root
+
+appSettings:
+  kubecostToken:  ## from global
+  kubecostProductConfigs: ## from root
+  pricingCsv:  ## from root
+  costEventsAudit:  ## from root
+  notifications:  ## from global
+  reports:  ## from global
+    reporting:  ## from root, probably need to break this up
+    savedReports:  ## from global
+    assetReports:  ## from global
+    advancedReports:  ## from global
+    cloudCostReports:  ## from global
+
+misc:  ## Misc settings, open to suggestions
+  etlUtils:  ## from root
+  diagnostics:  ## from root
+  extraObjects:  ## from root
+
+upgrade:
+  fromV1: false  ## New field, defaulted to false, required to be true to block upgrades from v1.
+
+### Notes ###
+# podSecurityPolicy is dropped (from root)
+# remoteWrite is dropped (from root)
